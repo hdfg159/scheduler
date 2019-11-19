@@ -1,0 +1,121 @@
+package hdfg159.scheduler.trigger;
+
+import java.io.Serializable;
+import java.time.LocalDateTime;
+import java.util.Optional;
+import java.util.concurrent.Delayed;
+import java.util.function.Consumer;
+
+/**
+ * 任务触发器接口
+ *
+ * @author hdfg159
+ * @version 1.0
+ */
+public interface Trigger extends Serializable, Delayed {
+	/**
+	 * 获取任务 ID
+	 *
+	 * @return long
+	 */
+	long getId();
+	
+	/**
+	 * 设置任务 ID
+	 *
+	 * @param id
+	 * 		任务 ID
+	 *
+	 * @return Trigger
+	 */
+	Trigger id(long id);
+	
+	/**
+	 * 获取创建时间
+	 *
+	 * @return LocalDateTime
+	 */
+	LocalDateTime getCreateTime();
+	
+	/**
+	 * 获取任务名称
+	 *
+	 * @return String
+	 */
+	String getName();
+	
+	/**
+	 * 设置任务名称
+	 *
+	 * @param name
+	 * 		名称
+	 *
+	 * @return T
+	 */
+	Trigger name(String name);
+	
+	/**
+	 * 获取任务取消状态
+	 *
+	 * @return T
+	 */
+	boolean isCancel();
+	
+	/**
+	 * 设置任务取消状态
+	 *
+	 * @param cancel
+	 * 		状态
+	 *
+	 * @return T
+	 */
+	Trigger cancel(boolean cancel);
+	
+	/**
+	 * 获取任务
+	 *
+	 * @return T
+	 */
+	Consumer<Trigger> getJob();
+	
+	/**
+	 * 设置任务
+	 *
+	 * @param job
+	 * 		任务
+	 *
+	 * @return T
+	 */
+	Trigger job(Consumer<Trigger> job);
+	
+	/**
+	 * 获取执行时间
+	 *
+	 * @return LocalDateTime
+	 */
+	LocalDateTime getExecuteTime();
+	
+	/**
+	 * 设置执行时间
+	 *
+	 * @param executeTime
+	 * 		执行时间
+	 *
+	 * @return T
+	 */
+	Trigger executeTime(LocalDateTime executeTime);
+	
+	/**
+	 * 自定义在原来基础上生成一个新的触发器
+	 *
+	 * @return {@code Optional<T>}
+	 */
+	Optional<Trigger> nextTrigger();
+	
+	/**
+	 * 调度动作
+	 *
+	 * @return boolean true:放入调度队列成功,false:放入调度队列失败
+	 */
+	boolean schedule();
+}
