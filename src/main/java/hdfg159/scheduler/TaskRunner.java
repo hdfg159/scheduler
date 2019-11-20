@@ -35,8 +35,8 @@ public class TaskRunner implements Runnable {
 		
 		try {
 			trigger.getJob().accept(trigger);
-		} catch (Exception e) {
-			log.error("[{}] job run error", triggerName, e);
+		} catch (Throwable e) {
+			trigger.exceptionCaught(e);
 		}
 		
 		LocalDateTime end = LocalDateTime.now();

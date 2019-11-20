@@ -2,6 +2,8 @@ package hdfg159.scheduler.trigger;
 
 import hdfg159.scheduler.SchedulerManager;
 import hdfg159.scheduler.util.Sequence;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
@@ -18,6 +20,8 @@ import java.util.function.Consumer;
  */
 public abstract class AbstractTrigger<T extends AbstractTrigger<T>> implements Trigger {
 	private static final long serialVersionUID = -8924096205973321207L;
+	
+	private static final Logger log = LoggerFactory.getLogger(AbstractTrigger.class);
 	
 	private long id = Sequence.SEQUENCE.nextId();
 	private Consumer<Trigger> job;
@@ -126,6 +130,11 @@ public abstract class AbstractTrigger<T extends AbstractTrigger<T>> implements T
 	@Override
 	public boolean schedule() {
 		return SchedulerManager.INSTANCE.schedule(this);
+	}
+	
+	@Override
+	public void exceptionCaught(Throwable cause) {
+		log.error("[{}] job run error", getName(), cause);
 	}
 	
 	@Override

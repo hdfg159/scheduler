@@ -118,4 +118,12 @@ public interface Trigger extends Serializable, Delayed {
 	 * @return boolean true:放入调度队列成功,false:放入调度队列失败
 	 */
 	boolean schedule();
+	
+	/**
+	 * 抛出异常后操作
+	 *
+	 * @param cause
+	 * 		异常
+	 */
+	void exceptionCaught(Throwable cause);
 }
