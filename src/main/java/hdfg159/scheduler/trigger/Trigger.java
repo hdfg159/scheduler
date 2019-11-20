@@ -50,7 +50,7 @@ public interface Trigger extends Serializable, Delayed {
 	 * @param name
 	 * 		名称
 	 *
-	 * @return T
+	 * @return Trigger
 	 */
 	Trigger name(String name);
 	
@@ -67,14 +67,14 @@ public interface Trigger extends Serializable, Delayed {
 	 * @param cancel
 	 * 		状态
 	 *
-	 * @return T
+	 * @return Trigger
 	 */
 	Trigger cancel(boolean cancel);
 	
 	/**
 	 * 获取任务
 	 *
-	 * @return T
+	 * @return Consumer<Trigger>
 	 */
 	Consumer<Trigger> getJob();
 	
@@ -84,7 +84,7 @@ public interface Trigger extends Serializable, Delayed {
 	 * @param job
 	 * 		任务
 	 *
-	 * @return T
+	 * @return Trigger
 	 */
 	Trigger job(Consumer<Trigger> job);
 	
@@ -101,7 +101,7 @@ public interface Trigger extends Serializable, Delayed {
 	 * @param executeTime
 	 * 		执行时间
 	 *
-	 * @return T
+	 * @return Trigger
 	 */
 	Trigger executeTime(LocalDateTime executeTime);
 	
