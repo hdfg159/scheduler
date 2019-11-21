@@ -121,16 +121,24 @@ public interface Trigger extends Serializable, Delayed {
 	boolean schedule();
 	
 	/**
-	 * 抛出异常后默认处理
+	 * 抛出异常后 默认处理方法
 	 *
 	 * @param cause
 	 * 		异常
 	 */
 	default void exceptionCaught(Throwable cause) {
 		BiConsumer<Trigger, Throwable> consumer = getAfterExceptionCaught();
-		if (consumer != null) {
-			consumer.accept(this, cause);
+		if (consumer == null) {
+			if (cause instanceof RuntimeException) {
+				throw (RuntimeException) cause;
+			}
+			if (cause instanceof Error) {
+				throw (Error) cause;
+			}
+			throw new RuntimeException(cause);
 		}
+		
+		consumer.accept(this, cause);
 	}
 	
 	/**

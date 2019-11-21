@@ -33,7 +33,6 @@ public abstract class AbstractTrigger<T extends AbstractTrigger<T>> implements T
 	private LocalDateTime createTime = LocalDateTime.now();
 	private BiConsumer<Trigger, Throwable> exceptionCaughtConsumer;
 	
-	
 	public LocalDateTime getPreviousTime() {
 		return previousTime;
 	}
@@ -145,7 +144,7 @@ public abstract class AbstractTrigger<T extends AbstractTrigger<T>> implements T
 	}
 	
 	@Override
-	public Trigger afterExceptionCaught(BiConsumer<Trigger, Throwable> consumer) {
+	public T afterExceptionCaught(BiConsumer<Trigger, Throwable> consumer) {
 		exceptionCaughtConsumer = consumer;
 		return self();
 	}
