@@ -24,10 +24,24 @@ public class SchedulerManagerTest {
 			triggers.forEach(trigger -> log.info("{}", trigger));
 		});
 		
-		Triggers.forever("forever", 1, ChronoUnit.MICROS, LocalDateTime.now(), trigger -> log.info("{}", trigger)).schedule();
+		Triggers.forever("forever", 1, ChronoUnit.SECONDS, LocalDateTime.now(), trigger -> {
+			throw new RuntimeException("===========");
+			// log.info("{}", trigger);
+		}).schedule();
 		
 		Thread.sleep(5_000);
 		instance.shutdown();
 		Thread.sleep(2_000);
+	}
+	
+	@Test
+	public void testCatch() throws InterruptedException {
+		Thread asdsada = new Thread(() -> {
+			throw new RuntimeException("asdsada");
+		});
+		asdsada.setUncaughtExceptionHandler((t, e) -> System.out.println("叼你妈"));
+		asdsada.start();
+		
+		Thread.sleep(3000);
 	}
 }

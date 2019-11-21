@@ -99,6 +99,8 @@ public enum SchedulerManager {
 		final ThreadFactory threadFactory = new ThreadFactoryBuilder()
 				.setNameFormat(poolNameFormat)
 				.setDaemon(false)
+				// 默认异常处理
+				.setUncaughtExceptionHandler((t, e) -> log.error("thread run error:[{}]", t.getName(), e))
 				.build();
 		
 		return new ThreadPoolExecutor(corePoolSize, maximumPoolSize, keepAliveTime, timeUnit, workQueue, threadFactory, rejectedExecutionHandler) {
@@ -260,7 +262,7 @@ public enum SchedulerManager {
 						schedule(trigger);
 					});
 					
-					taskService.submit(new TaskRunner(trigger));
+					taskService.execute(new TaskRunner(trigger));
 				} catch (InterruptedException e) {
 					log.error("take queue task thread interrupted,task termination,queue size:[{}]", taskQueue.size());
 					// 恢复中断状态
