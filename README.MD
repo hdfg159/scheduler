@@ -27,10 +27,10 @@
 > 创建从现在开始，1秒触发1次，一共执行10次的任务
 
 ```
-	Triggers.times("自定义触发器名称", 10, 1, ChronoUnit.SECONDS, LocalDateTime.now(), trigger -> {
-			// 业务处理
-			System.out.println("hello world");
-	}).schedule();
+Triggers.times("自定义触发器名称", 10, 1, ChronoUnit.SECONDS, LocalDateTime.now(), trigger -> {
+        // 业务处理
+        System.out.println("hello world");
+}).schedule();
 ```
 
 更多创建方式可以查看 `hdfg159.scheduler.factory.Triggers` 工厂方法
@@ -40,28 +40,28 @@
 > 通过 Trigger 的 `scheduleCancel()` 方法 直接取消
 
 ```
-        Trigger trigger = ... ;
-        trigger.scheduleCancel();
+Trigger trigger = ... ;
+trigger.scheduleCancel();
 ```
 
 > 通过 `ScheduleManager` 的 `cancel(String triggerName)` 根据触发器自定义名称进行取消
 
 ```
-        SchedulerManager.INSTANCE.cancel("自定义触发器名称");
+SchedulerManager.INSTANCE.cancel("自定义触发器名称");
 ```
 
 ## 定制任务异常处理
 
 ```
-		Triggers.times("自定义触发器名称", 10, 1, ChronoUnit.SECONDS, LocalDateTime.now(),
-				trigger -> {
-					// 业务处理
-					System.out.println("hello world");
-				})
-				.afterExceptionCaught((trigger, throwable) -> {
-					// 异常处理
-				})
-				.schedule();
+Triggers.times("自定义触发器名称", 10, 1, ChronoUnit.SECONDS, LocalDateTime.now(),
+        trigger -> {
+            // 业务处理
+            System.out.println("hello world");
+        })
+        .afterExceptionCaught((trigger, throwable) -> {
+            // 异常处理
+        })
+        .schedule();
 ```
 
 待补充...
