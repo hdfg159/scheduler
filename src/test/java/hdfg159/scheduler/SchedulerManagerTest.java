@@ -18,18 +18,17 @@ public class SchedulerManagerTest {
 	
 	@Test
 	public void test() throws InterruptedException {
-		SchedulerManager instance = SchedulerManager.INSTANCE;
-		instance.setTakeQueueInterruptListener(triggers -> {
-			log.info("interrupt!queue size:[{}]", triggers.size());
-			triggers.forEach(trigger -> log.info("{}", trigger));
-		});
+		SchedulerManager instance = SchedulerManager.INSTANCE
+				.setTakeQueueInterruptListener(triggers -> {
+					log.info("interrupt!queue size:[{}]", triggers.size());
+					triggers.forEach(trigger -> log.info("{}", trigger));
+				});
 		
-		Triggers
-				.forever("forever", 1, ChronoUnit.SECONDS, LocalDateTime.now(), trigger -> {
+		Triggers.forever("forever", 1, ChronoUnit.SECONDS, LocalDateTime.now(),
+				trigger -> {
 					throw new RuntimeException("===========");
-					// log.info("{}", trigger);
 				})
-				// .afterExceptionCaught((trigger, throwable) -> log.error("adsadadadssd"))
+				.afterExceptionCaught((trigger, throwable) -> log.error("单独实现异常捕获，异常信息:{}", throwable.getMessage(), throwable))
 				.schedule();
 		
 		Thread.sleep(5_000);
