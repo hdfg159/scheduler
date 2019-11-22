@@ -19,7 +19,7 @@ import java.util.function.Consumer;
  */
 public abstract class Triggers {
 	/**
-	 * 创建不带结束生效时间的简单定时器
+	 * 创建有限次数且不带结束生效时间 任务触发器
 	 *
 	 * @param name
 	 * 		名称
@@ -41,7 +41,7 @@ public abstract class Triggers {
 	}
 	
 	/**
-	 * 创建在生效时间和结束时间之间固定间隔时间生效的简单定时器
+	 * 创建在生效时间和结束时间之间固定间隔时间生效 任务触发器
 	 *
 	 * @param name
 	 * 		名称
@@ -63,7 +63,7 @@ public abstract class Triggers {
 	}
 	
 	/**
-	 * 创建没有结束时间而且固定间隔时间生效的简单定时器
+	 * 创建没有结束时间而且固定间隔时间生效 任务触发器
 	 *
 	 * @param name
 	 * 		名称
@@ -83,7 +83,7 @@ public abstract class Triggers {
 	}
 	
 	/**
-	 * 创建一次性执行而且没有结束生效时间的简单定时器
+	 * 创建每日固定时间 任务触发器
 	 *
 	 * @param name
 	 * 		名称
@@ -102,7 +102,7 @@ public abstract class Triggers {
 	}
 	
 	/**
-	 * 创建无限次执行而且没有结束生效时间的每日定时器
+	 * 创建执行一次 任务触发器
 	 *
 	 * @param name
 	 * 		名称
@@ -118,7 +118,7 @@ public abstract class Triggers {
 	}
 	
 	/**
-	 * 创建日调度定时器
+	 * 创建周几时间点 任务触发器
 	 *
 	 * @param name
 	 * 		名称
