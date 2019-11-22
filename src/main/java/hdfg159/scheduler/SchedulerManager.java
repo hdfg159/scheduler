@@ -258,7 +258,7 @@ public enum SchedulerManager {
 					waitingJob.remove(triggerName);
 					
 					trigger.nextTrigger().ifPresent(t -> {
-						log.debug("next trigger [{}] effect", t.getName());
+						log.debug("next trigger effect:[{}]", t.getName());
 						schedule(trigger);
 					});
 					

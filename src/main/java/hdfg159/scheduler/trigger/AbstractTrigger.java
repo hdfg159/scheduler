@@ -140,6 +140,11 @@ public abstract class AbstractTrigger<T extends AbstractTrigger<T>> implements T
 	}
 	
 	@Override
+	public boolean scheduleCancel() {
+		return SchedulerManager.INSTANCE.cancel(getName());
+	}
+	
+	@Override
 	public BiConsumer<Trigger, Throwable> getAfterExceptionCaught() {
 		return exceptionCaughtConsumer;
 	}

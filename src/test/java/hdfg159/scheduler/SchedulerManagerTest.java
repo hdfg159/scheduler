@@ -1,6 +1,7 @@
 package hdfg159.scheduler;
 
 import hdfg159.scheduler.factory.Triggers;
+import hdfg159.scheduler.trigger.impl.SimpleTrigger;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,12 +25,16 @@ public class SchedulerManagerTest {
 					triggers.forEach(trigger -> log.info("{}", trigger));
 				});
 		
-		Triggers.forever("forever", 1, ChronoUnit.SECONDS, LocalDateTime.now(),
+		SimpleTrigger forever = Triggers.forever("forever", 1, ChronoUnit.SECONDS, LocalDateTime.now(),
 				trigger -> {
 					throw new RuntimeException("===========");
 				})
-				.afterExceptionCaught((trigger, throwable) -> log.error("单独实现异常捕获，异常信息:{}", throwable.getMessage(), throwable))
-				.schedule();
+				.afterExceptionCaught((trigger, throwable) -> log.error("单独实现异常捕获，异常信息:{}", throwable.getMessage(), throwable));
+		forever.schedule();
+		
+		Thread.sleep(1_000);
+		
+		forever.scheduleCancel();
 		
 		Thread.sleep(5_000);
 		instance.shutdown();

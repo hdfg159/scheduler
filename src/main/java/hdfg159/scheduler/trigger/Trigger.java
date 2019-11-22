@@ -64,6 +64,7 @@ public interface Trigger extends Serializable, Delayed {
 	
 	/**
 	 * 设置任务取消状态
+	 * 与{@link Trigger#scheduleCancel()}不同，需要等待下次执行才可以重新加入同名定时器
 	 *
 	 * @param cancel
 	 * 		状态
@@ -114,11 +115,19 @@ public interface Trigger extends Serializable, Delayed {
 	Optional<Trigger> nextTrigger();
 	
 	/**
-	 * 调度动作
+	 * 调度
 	 *
 	 * @return boolean true:放入调度队列成功,false:放入调度队列失败
 	 */
 	boolean schedule();
+	
+	/**
+	 * 取消任务
+	 * 与{@link Trigger#cancel(boolean)}不同，可以在取消后马上加入新的同名定时器
+	 *
+	 * @return boolean true:取消成功,false:取消失败
+	 */
+	boolean scheduleCancel();
 	
 	/**
 	 * 抛出异常后 默认处理方法

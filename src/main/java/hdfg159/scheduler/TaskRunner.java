@@ -40,6 +40,6 @@ public class TaskRunner implements Runnable {
 		}
 		
 		LocalDateTime end = LocalDateTime.now();
-		log.info("[{}] job run success:[{}]ms", triggerName, start.until(end, ChronoUnit.MILLIS));
+		log.info("job run success:[{}] [{}ms]", triggerName, start.until(end, ChronoUnit.MILLIS));
 	}
 }
