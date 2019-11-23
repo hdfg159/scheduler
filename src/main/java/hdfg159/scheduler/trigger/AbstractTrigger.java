@@ -10,6 +10,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.StringJoiner;
 import java.util.concurrent.Delayed;
 import java.util.concurrent.TimeUnit;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 /**
@@ -30,6 +31,8 @@ public abstract class AbstractTrigger<T extends AbstractTrigger<T>> implements T
 	private LocalDateTime previousTime;
 	private LocalDateTime executeTime;
 	private LocalDateTime createTime = LocalDateTime.now();
+	private BiConsumer<Trigger, Throwable> exceptionCaughtConsumer;
+	
 	
 	public LocalDateTime getPreviousTime() {
 		return previousTime;
@@ -133,8 +136,18 @@ public abstract class AbstractTrigger<T extends AbstractTrigger<T>> implements T
 	}
 	
 	@Override
-	public void exceptionCaught(Throwable cause) {
-		log.error("[{}] job run error", getName(), cause);
+	public BiConsumer<Trigger, Throwable> getAfterExceptionCaught() {
+		if (exceptionCaughtConsumer == null) {
+			return (trigger, cause) -> log.error("[{}] job run error", getName(), cause);
+		}
+		
+		return exceptionCaughtConsumer;
+	}
+	
+	@Override
+	public Trigger afterExceptionCaught(BiConsumer<Trigger, Throwable> consumer) {
+		exceptionCaughtConsumer = consumer;
+		return self();
 	}
 	
 	@Override

@@ -4,6 +4,7 @@ import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.concurrent.Delayed;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 /**
@@ -120,10 +121,32 @@ public interface Trigger extends Serializable, Delayed {
 	boolean schedule();
 	
 	/**
-	 * 抛出异常后操作
+	 * 抛出异常后默认处理
 	 *
 	 * @param cause
 	 * 		异常
 	 */
-	void exceptionCaught(Throwable cause);
+	default void exceptionCaught(Throwable cause) {
+		BiConsumer<Trigger, Throwable> consumer = getAfterExceptionCaught();
+		if (consumer != null) {
+			consumer.accept(this, cause);
+		}
+	}
+	
+	/**
+	 * 获取 抛出异常后操作 消费
+	 *
+	 * @return {@code BiConsumer<Trigger, Throwable>}
+	 */
+	BiConsumer<Trigger, Throwable> getAfterExceptionCaught();
+	
+	/**
+	 * 抛出异常后操作 消费
+	 *
+	 * @param consumer
+	 * 		操作消费
+	 *
+	 * @return Trigger
+	 */
+	Trigger afterExceptionCaught(BiConsumer<Trigger, Throwable> consumer);
 }

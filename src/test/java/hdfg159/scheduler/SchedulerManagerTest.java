@@ -24,10 +24,13 @@ public class SchedulerManagerTest {
 			triggers.forEach(trigger -> log.info("{}", trigger));
 		});
 		
-		Triggers.forever("forever", 1, ChronoUnit.SECONDS, LocalDateTime.now(), trigger -> {
-			throw new RuntimeException("===========");
-			// log.info("{}", trigger);
-		}).schedule();
+		Triggers
+				.forever("forever", 1, ChronoUnit.SECONDS, LocalDateTime.now(), trigger -> {
+					throw new RuntimeException("===========");
+					// log.info("{}", trigger);
+				})
+				// .afterExceptionCaught((trigger, throwable) -> log.error("adsadadadssd"))
+				.schedule();
 		
 		Thread.sleep(5_000);
 		instance.shutdown();
