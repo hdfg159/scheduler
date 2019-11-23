@@ -36,15 +36,4 @@ public class SchedulerManagerTest {
 		instance.shutdown();
 		Thread.sleep(2_000);
 	}
-	
-	@Test
-	public void testCatch() throws InterruptedException {
-		Thread asdsada = new Thread(() -> {
-			throw new RuntimeException("asdsada");
-		});
-		asdsada.setUncaughtExceptionHandler((t, e) -> System.out.println("叼你妈"));
-		asdsada.start();
-		
-		Thread.sleep(3000);
-	}
 }

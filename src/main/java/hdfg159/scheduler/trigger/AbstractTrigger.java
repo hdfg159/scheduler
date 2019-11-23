@@ -31,8 +31,13 @@ public abstract class AbstractTrigger<T extends AbstractTrigger<T>> implements T
 	private LocalDateTime previousTime;
 	private LocalDateTime executeTime;
 	private LocalDateTime createTime = LocalDateTime.now();
-	private BiConsumer<Trigger, Throwable> exceptionCaughtConsumer;
+	private BiConsumer<Trigger, Throwable> exceptionCaughtConsumer = (trigger, cause) -> log.error("[{}] job run error", getName(), cause);
 	
+	/**
+	 * 获取上次执行时间
+	 *
+	 * @return LocalDateTime
+	 */
 	public LocalDateTime getPreviousTime() {
 		return previousTime;
 	}
@@ -136,10 +141,6 @@ public abstract class AbstractTrigger<T extends AbstractTrigger<T>> implements T
 	
 	@Override
 	public BiConsumer<Trigger, Throwable> getAfterExceptionCaught() {
-		if (exceptionCaughtConsumer == null) {
-			return (trigger, cause) -> log.error("[{}] job run error", getName(), cause);
-		}
-		
 		return exceptionCaughtConsumer;
 	}
 	

@@ -142,14 +142,14 @@ public interface Trigger extends Serializable, Delayed {
 	}
 	
 	/**
-	 * 获取 抛出异常后操作 消费
+	 * 获取 Trigger job执行 抛出异常后操作 消费
 	 *
 	 * @return {@code BiConsumer<Trigger, Throwable>}
 	 */
 	BiConsumer<Trigger, Throwable> getAfterExceptionCaught();
 	
 	/**
-	 * 抛出异常后操作 消费
+	 * Trigger job执行 抛出异常后操作 消费
 	 *
 	 * @param consumer
 	 * 		操作消费
