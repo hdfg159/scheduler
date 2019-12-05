@@ -7,14 +7,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Map;
 import java.util.Optional;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.DelayQueue;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.RejectedExecutionHandler;
-import java.util.concurrent.ThreadFactory;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 import java.util.function.Consumer;
 
 /**
@@ -194,21 +187,25 @@ public enum SchedulerManager {
 		if (trigger == null) {
 			throw new IllegalArgumentException("trigger not allow null");
 		}
-		if (trigger.getName() == null) {
+		
+		String triggerName = trigger.getName();
+		if (triggerName == null) {
 			throw new IllegalArgumentException("trigger must have a name");
 		}
 		
-		if (waitingJob.containsKey(trigger.getName())) {
-			throw new RuntimeException("exist trigger name:[" + trigger.getName() + "]");
+		Trigger putVal = waitingJob.put(triggerName, trigger);
+		if (putVal != null) {
+			throw new RuntimeException("exist trigger name:[" + triggerName + "]");
 		}
 		
 		boolean isAddSuccess = taskQueue.add(trigger);
-		if (isAddSuccess) {
-			log.info("schedule trigger:[{}][{}],execute time:[{}]", trigger.getName(), trigger.getId(), trigger.getExecuteTime());
-			waitingJob.put(trigger.getName(), trigger);
+		if (!isAddSuccess) {
+			waitingJob.remove(triggerName);
+			return false;
 		}
 		
-		return isAddSuccess;
+		log.info("schedule trigger:[{}][{}],execute time:[{}]", triggerName, trigger.getId(), trigger.getExecuteTime());
+		return true;
 	}
 	
 	/**
