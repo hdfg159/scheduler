@@ -84,4 +84,23 @@ public interface TriggerProperties {
 	 * @return long
 	 */
 	long getCostTime();
+	
+	/**
+	 * 前后任务是否顺序执行
+	 *
+	 * @return boolean
+	 */
+	boolean isSequence();
+	
+	/**
+	 * 设置 前后任务是否顺序执行<br>
+	 * {@code true} 顺序执行，等前一个任务完成时候才执行下一个，任务执行时间过长会导致后一个任务开始时间顺延   <br>
+	 * {@code false} 前一个任务开始时候 直接 放入后一个任务，前后任务执行时间互不关联,但是{@link TriggerProperties#getCostTime()}获得的时间会不准确（因为根据上一个任务执行完统计得到花费时间）<br>
+	 *
+	 * @param sequence
+	 * 		前后任务是否顺序执行
+	 *
+	 * @return TriggerProperties
+	 */
+	TriggerProperties sequence(boolean sequence);
 }

@@ -254,11 +254,6 @@ public enum SchedulerManager {
 					String triggerName = trigger.getName();
 					waitingJob.remove(triggerName);
 					
-					trigger.nextTrigger().ifPresent(t -> {
-						log.debug("next trigger effect:[{}],task cost time:[{}ms]", t.getName(), t.getCostTime());
-						schedule(trigger);
-					});
-					
 					taskService.execute(new TaskRunner(trigger));
 				} catch (InterruptedException e) {
 					log.error("take queue task thread interrupted,task termination,queue size:[{}]", taskQueue.size());

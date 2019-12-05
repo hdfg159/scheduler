@@ -1,11 +1,13 @@
 package hdfg159.scheduler;
 
 import hdfg159.scheduler.trigger.Trigger;
+import hdfg159.scheduler.trigger.TriggerProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
+import java.util.function.Predicate;
 
 /**
  * 任务运行
@@ -23,8 +25,9 @@ public class TaskRunner implements Runnable {
 	
 	@Override
 	public void run() {
-		String triggerName = trigger.getName();
+		beforeJobRun();
 		
+		String triggerName = trigger.getName();
 		if (trigger.isCancel()) {
 			log.warn("[{}] job cancel,not execute", triggerName);
 			return;
@@ -45,5 +48,30 @@ public class TaskRunner implements Runnable {
 		trigger.costTime(until);
 		
 		log.info("job run success:[{}] [{}ms]", triggerName, until);
+		
+		afterJobRun();
+	}
+	
+	private void beforeJobRun() {
+		nextTriggerEffect(t -> !t.isSequence());
+	}
+	
+	private void afterJobRun() {
+		nextTriggerEffect(TriggerProperties::isSequence);
+	}
+	
+	/**
+	 * 生效并且放入下一个定时器
+	 *
+	 * @param predicate
+	 * 		条件
+	 */
+	private void nextTriggerEffect(Predicate<Trigger> predicate) {
+		trigger.nextTrigger()
+				.filter(predicate)
+				.ifPresent(t -> {
+					boolean schedule = trigger.schedule();
+					log.debug("next trigger effect:[{}],task cost time:[{}ms],result:[{}]", t.getName(), t.getCostTime(), schedule);
+				});
 	}
 }

@@ -54,6 +54,7 @@ public class SchedulerManagerTest {
 						// ignore
 					}
 				})
+				.sequence(true)
 				.schedule();
 		
 		Thread.sleep(100_000);

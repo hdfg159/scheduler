@@ -29,6 +29,7 @@ public abstract class AbstractTrigger<T extends AbstractTrigger<T>> implements T
 	private String name;
 	private boolean cancel = false;
 	private long costTime;
+	private boolean sequence = false;
 	private LocalDateTime previousTime;
 	private LocalDateTime executeTime;
 	private LocalDateTime createTime = LocalDateTime.now();
@@ -125,6 +126,24 @@ public abstract class AbstractTrigger<T extends AbstractTrigger<T>> implements T
 	}
 	
 	@Override
+	public boolean isSequence() {
+		return sequence;
+	}
+	
+	@Override
+	public T sequence(boolean sequence) {
+		this.sequence = sequence;
+		return self();
+	}
+	
+	@Override
+	public long getDelay(TimeUnit unit) {
+		LocalDateTime now = LocalDateTime.now();
+		long duration = now.until(getExecuteTime(), ChronoUnit.MILLIS);
+		return unit.convert(duration, TimeUnit.MILLISECONDS);
+	}
+	
+	@Override
 	public Consumer<Trigger> getJob() {
 		return job;
 	}
@@ -165,13 +184,6 @@ public abstract class AbstractTrigger<T extends AbstractTrigger<T>> implements T
 	public T afterExceptionCaught(BiConsumer<Trigger, Throwable> consumer) {
 		exceptionCaughtConsumer = consumer;
 		return self();
-	}
-	
-	@Override
-	public long getDelay(TimeUnit unit) {
-		LocalDateTime now = LocalDateTime.now();
-		long duration = now.until(getExecuteTime(), ChronoUnit.MILLIS);
-		return unit.convert(duration, TimeUnit.MILLISECONDS);
 	}
 	
 	@Override
