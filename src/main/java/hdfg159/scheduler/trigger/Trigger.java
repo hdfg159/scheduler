@@ -13,66 +13,7 @@ import java.util.function.Consumer;
  * @author hdfg159
  * @version 1.0
  */
-public interface Trigger extends Serializable, Delayed {
-	/**
-	 * 获取任务 ID
-	 *
-	 * @return long
-	 */
-	long getId();
-	
-	/**
-	 * 设置任务 ID
-	 *
-	 * @param id
-	 * 		任务 ID
-	 *
-	 * @return Trigger
-	 */
-	Trigger id(long id);
-	
-	/**
-	 * 获取创建时间
-	 *
-	 * @return LocalDateTime
-	 */
-	LocalDateTime getCreateTime();
-	
-	/**
-	 * 获取任务名称
-	 *
-	 * @return String
-	 */
-	String getName();
-	
-	/**
-	 * 设置任务名称
-	 *
-	 * @param name
-	 * 		名称
-	 *
-	 * @return Trigger
-	 */
-	Trigger name(String name);
-	
-	/**
-	 * 获取任务取消状态
-	 *
-	 * @return T
-	 */
-	boolean isCancel();
-	
-	/**
-	 * 设置任务取消状态
-	 * 与{@link Trigger#scheduleCancel()}不同，需要等待下次执行才可以重新加入同名定时器
-	 *
-	 * @param cancel
-	 * 		状态
-	 *
-	 * @return Trigger
-	 */
-	Trigger cancel(boolean cancel);
-	
+public interface Trigger extends Serializable, Delayed, TriggerProperties {
 	/**
 	 * 获取任务
 	 *

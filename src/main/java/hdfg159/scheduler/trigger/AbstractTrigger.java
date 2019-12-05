@@ -28,6 +28,7 @@ public abstract class AbstractTrigger<T extends AbstractTrigger<T>> implements T
 	private Consumer<Trigger> job;
 	private String name;
 	private boolean cancel = false;
+	private long costTime;
 	private LocalDateTime previousTime;
 	private LocalDateTime executeTime;
 	private LocalDateTime createTime = LocalDateTime.now();
@@ -113,6 +114,17 @@ public abstract class AbstractTrigger<T extends AbstractTrigger<T>> implements T
 	}
 	
 	@Override
+	public T costTime(long time) {
+		costTime = time;
+		return self();
+	}
+	
+	@Override
+	public long getCostTime() {
+		return costTime;
+	}
+	
+	@Override
 	public Consumer<Trigger> getJob() {
 		return job;
 	}
@@ -166,8 +178,10 @@ public abstract class AbstractTrigger<T extends AbstractTrigger<T>> implements T
 	public String toString() {
 		return new StringJoiner(", ", AbstractTrigger.class.getSimpleName() + "[", "]")
 				.add("id=" + id)
+				.add("job=" + job)
 				.add("name='" + name + "'")
 				.add("cancel=" + cancel)
+				.add("costTime=" + costTime)
 				.add("previousTime=" + previousTime)
 				.add("executeTime=" + executeTime)
 				.add("createTime=" + createTime)

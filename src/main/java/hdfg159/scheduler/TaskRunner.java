@@ -40,6 +40,10 @@ public class TaskRunner implements Runnable {
 		}
 		
 		LocalDateTime end = LocalDateTime.now();
-		log.info("job run success:[{}] [{}ms]", triggerName, start.until(end, ChronoUnit.MILLIS));
+		// 设置任务执行时间
+		long until = start.until(end, ChronoUnit.MILLIS);
+		trigger.costTime(until);
+		
+		log.info("job run success:[{}] [{}ms]", triggerName, until);
 	}
 }
