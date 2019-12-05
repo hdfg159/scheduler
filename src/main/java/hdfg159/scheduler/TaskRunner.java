@@ -7,6 +7,7 @@ import org.slf4j.LoggerFactory;
 
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
+import java.util.Optional;
 import java.util.function.Predicate;
 
 /**
@@ -67,13 +68,12 @@ public class TaskRunner implements Runnable {
 	 * 		条件
 	 */
 	private void nextTriggerEffect(Predicate<Trigger> predicate) {
-		if (!predicate.test(trigger)) {
-			return;
-		}
-		
-		trigger.nextTrigger().ifPresent(t -> {
-			boolean schedule = trigger.schedule();
-			log.debug("next trigger effect:[{}],task cost time:[{}ms],result:[{}]", t.getName(), t.getCostTime(), schedule);
-		});
+		Optional.ofNullable(trigger)
+				.filter(predicate)
+				.flatMap(Trigger::nextTrigger)
+				.ifPresent(t -> {
+					boolean schedule = trigger.schedule();
+					log.debug("next trigger effect:[{}],task cost time:[{}ms],result:[{}]", t.getName(), t.getCostTime(), schedule);
+				});
 	}
 }
