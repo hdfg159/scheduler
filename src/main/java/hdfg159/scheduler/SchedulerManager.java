@@ -126,7 +126,7 @@ public enum SchedulerManager {
 	private ExecutorService slowTaskThreadPoolExecutor() {
 		final String poolNameFormat = "slow-task-executor-%d";
 		final RejectedExecutionHandler rejectedExecutionHandler = new ThreadPoolExecutor.CallerRunsPolicy();
-		final int corePoolSize = Runtime.getRuntime().availableProcessors() + 1;
+		final int corePoolSize = Runtime.getRuntime().availableProcessors() * 10;
 		final int maximumPoolSize = Runtime.getRuntime().availableProcessors() * 10;
 		final int keepAliveTime = 60;
 		final TimeUnit timeUnit = TimeUnit.SECONDS;
