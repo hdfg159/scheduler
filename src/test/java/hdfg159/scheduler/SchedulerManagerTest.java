@@ -46,17 +46,19 @@ public class SchedulerManagerTest {
 	public void repeatOneSecond() throws InterruptedException {
 		Triggers.times("triggers", 10, 1, ChronoUnit.SECONDS, LocalDateTime.now(),
 				trigger -> {
-					log.info("1111111===");
 					int second = ThreadLocalRandom.current().nextInt(0, 5) * 1_000;
 					try {
 						Thread.sleep(second);
 					} catch (InterruptedException e) {
 						// ignore
 					}
+					log.info("1111111===[{}]", ((SimpleTrigger) trigger).getExecuteTimes());
 				})
 				.sequence(true)
 				.schedule();
 		
-		Thread.sleep(100_000);
+		Thread.sleep(60_000);
+		SchedulerManager.INSTANCE.shutdown();
+		Thread.sleep(3_000);
 	}
 }

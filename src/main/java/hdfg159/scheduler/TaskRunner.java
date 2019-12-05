@@ -67,11 +67,13 @@ public class TaskRunner implements Runnable {
 	 * 		条件
 	 */
 	private void nextTriggerEffect(Predicate<Trigger> predicate) {
-		trigger.nextTrigger()
-				.filter(predicate)
-				.ifPresent(t -> {
-					boolean schedule = trigger.schedule();
-					log.debug("next trigger effect:[{}],task cost time:[{}ms],result:[{}]", t.getName(), t.getCostTime(), schedule);
-				});
+		if (!predicate.test(trigger)) {
+			return;
+		}
+		
+		trigger.nextTrigger().ifPresent(t -> {
+			boolean schedule = trigger.schedule();
+			log.debug("next trigger effect:[{}],task cost time:[{}ms],result:[{}]", t.getName(), t.getCostTime(), schedule);
+		});
 	}
 }

@@ -194,6 +194,7 @@ public abstract class AbstractTrigger<T extends AbstractTrigger<T>> implements T
 				.add("name='" + name + "'")
 				.add("cancel=" + cancel)
 				.add("costTime=" + costTime)
+				.add("sequence=" + sequence)
 				.add("previousTime=" + previousTime)
 				.add("executeTime=" + executeTime)
 				.add("createTime=" + createTime)

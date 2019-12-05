@@ -21,6 +21,11 @@ public enum SchedulerManager {
 	 * 实例
 	 */
 	INSTANCE;
+	
+	/**
+	 * 慢任务执行时间 阈值(毫秒)
+	 */
+	public static final long MAX_LIMIT_TIME = 100L;
 	/**
 	 * 是否运行定时任务调度
 	 */
@@ -44,6 +49,10 @@ public enum SchedulerManager {
 	 */
 	private final ExecutorService taskService;
 	/**
+	 * 慢任务运行线程池
+	 */
+	private final ExecutorService slowTaskService;
+	/**
 	 * 取任务线程
 	 */
 	private final Thread takeTaskThread;
@@ -58,6 +67,7 @@ public enum SchedulerManager {
 	 */
 	SchedulerManager() {
 		taskService = taskThreadPoolExecutor();
+		slowTaskService = slowTaskThreadPoolExecutor();
 		
 		takeTaskThread = new Thread(new TakeQueueTask());
 		takeTaskThread.setName(THREAD_NAME_SCHEDULER_TAKE_TASK);
@@ -104,6 +114,38 @@ public enum SchedulerManager {
 				log.info("shutdown task thread pool,working thread count:[{}],queue size:[{}],wait for exist tasks count:[{}]", threadActiveCount, queueSize, queueSize + threadActiveCount);
 				super.shutdown();
 				log.info("shutdown task thread pool finish");
+			}
+		};
+	}
+	
+	/**
+	 * 慢任务执行线程池
+	 *
+	 * @return ExecutorService
+	 */
+	private ExecutorService slowTaskThreadPoolExecutor() {
+		final String poolNameFormat = "slow-task-executor-%d";
+		final RejectedExecutionHandler rejectedExecutionHandler = new ThreadPoolExecutor.CallerRunsPolicy();
+		final int corePoolSize = Runtime.getRuntime().availableProcessors() + 1;
+		final int maximumPoolSize = Runtime.getRuntime().availableProcessors() * 10;
+		final int keepAliveTime = 60;
+		final TimeUnit timeUnit = TimeUnit.SECONDS;
+		final int queueCapacity = Integer.MAX_VALUE;
+		final LinkedBlockingQueue<Runnable> workQueue = new LinkedBlockingQueue<>(queueCapacity);
+		final ThreadFactory threadFactory = new ThreadFactoryBuilder()
+				.setNameFormat(poolNameFormat)
+				.setDaemon(false)
+				.setUncaughtExceptionHandler((t, e) -> log.error("thread run error:[{}]", t.getName(), e))
+				.build();
+		
+		return new ThreadPoolExecutor(corePoolSize, maximumPoolSize, keepAliveTime, timeUnit, workQueue, threadFactory, rejectedExecutionHandler) {
+			@Override
+			public void shutdown() {
+				int queueSize = getQueue().size();
+				int threadActiveCount = getActiveCount();
+				log.info("shutdown slow task thread pool,working thread count:[{}],queue size:[{}],wait for exist tasks count:[{}]", threadActiveCount, queueSize, queueSize + threadActiveCount);
+				super.shutdown();
+				log.info("shutdown slow task thread pool finish");
 			}
 		};
 	}
@@ -169,6 +211,7 @@ public enum SchedulerManager {
 		takeTaskThread.interrupt();
 		
 		taskService.shutdown();
+		slowTaskService.shutdown();
 	}
 	
 	/**
@@ -254,7 +297,12 @@ public enum SchedulerManager {
 					String triggerName = trigger.getName();
 					waitingJob.remove(triggerName);
 					
-					taskService.execute(new TaskRunner(trigger));
+					TaskRunner taskRunner = new TaskRunner(trigger);
+					if (trigger.getCostTime() > MAX_LIMIT_TIME) {
+						slowTaskService.execute(taskRunner);
+					} else {
+						taskService.execute(taskRunner);
+					}
 				} catch (InterruptedException e) {
 					log.error("take queue task thread interrupted,task termination,queue size:[{}]", taskQueue.size());
 					// 恢复中断状态
