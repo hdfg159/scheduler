@@ -35,7 +35,7 @@ public class TaskRunner implements Runnable {
 		}
 		
 		log.info("trigger job:[{}]", triggerName);
-		LocalDateTime start = LocalDateTime.now();
+		LocalDateTime startTime = LocalDateTime.now();
 		
 		try {
 			trigger.getJob().accept(trigger);
@@ -43,13 +43,11 @@ public class TaskRunner implements Runnable {
 			trigger.exceptionCaught(e);
 		}
 		
-		LocalDateTime end = LocalDateTime.now();
 		// 设置任务执行时间
-		long until = start.until(end, ChronoUnit.MILLIS);
+		long until = startTime.until(LocalDateTime.now(), ChronoUnit.MILLIS);
 		trigger.costTime(until);
 		
 		log.info("job run success:[{}] [{}ms]", triggerName, until);
-		
 		afterJobRun();
 	}
 	
