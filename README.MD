@@ -91,4 +91,6 @@ Triggers.times("自定义触发器名称", times, 1, ChronoUnit.SECONDS, LocalDa
         .schedule();
 ```
 
-待补充...
+# License
+
+Scheduler is under the [Apache License, Version 2.0](http://www.apache.org/licenses/LICENSE-2.0) - see the [LICENSE](LICENSE) file for details.
