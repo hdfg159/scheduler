@@ -7,6 +7,7 @@ import org.slf4j.LoggerFactory;
 
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
+import java.util.Map;
 import java.util.Optional;
 import java.util.function.Predicate;
 
@@ -26,21 +27,52 @@ public class TaskRunner implements Runnable {
 	
 	@Override
 	public void run() {
+		long triggerId = trigger.getId();
+		
 		beforeJobRun();
 		
-		String triggerName = trigger.getName();
+		try {
+			boolean isThrowException = jobRun();
+			if (isThrowException) {
+				retry(triggerId, trigger);
+			}
+		} finally {
+			afterJobRun();
+		}
+	}
+	
+	/**
+	 * 任务执行前
+	 */
+	private void beforeJobRun() {
+		nextTriggerEffect(t -> !t.isSequence());
+	}
+	
+	/**
+	 * 任务执行
+	 *
+	 * @return boolean true:任务执行出现异常返回 ,false:任务正常执行无错误
+	 */
+	private boolean jobRun() {
 		if (trigger.isCancel()) {
-			log.warn("[{}] job cancel,not execute", triggerName);
-			return;
+			log.warn("[{}] job cancel", trigger.getName());
+			return false;
 		}
 		
+		boolean isThrowException = false;
+		String triggerName = trigger.getName();
 		log.info("trigger job:[{}]", triggerName);
 		LocalDateTime startTime = LocalDateTime.now();
 		
 		try {
 			trigger.getJob().accept(trigger);
 		} catch (Throwable e) {
-			trigger.exceptionCaught(e);
+			isThrowException = true;
+			try {
+				trigger.exceptionCaught(e);
+			} catch (Throwable e1) {
+				log.error("trigger job exception caught error", e1);
+			}
 		}
 		
 		// 设置任务执行时间
@@ -48,13 +80,46 @@ public class TaskRunner implements Runnable {
 		trigger.costTime(until);
 		
 		log.info("job run success:[{}] [{}ms]", triggerName, until);
-		afterJobRun();
+		
+		return isThrowException;
 	}
 	
-	private void beforeJobRun() {
-		nextTriggerEffect(t -> !t.isSequence());
+	/**
+	 * 重试
+	 *
+	 * @param triggerId
+	 * 		触发器原 ID
+	 * @param trigger
+	 * 		触发器
+	 */
+	private void retry(long triggerId, Trigger trigger) {
+		Map<Long, Long> retryCountMap = trigger.getRetryCountMap();
+		Long retryTimes = retryCountMap.getOrDefault(triggerId, 0L);
+		
+		String triggerName = trigger.getName();
+		
+		// 重复尝试
+		for (long i = retryTimes; i > 0; i--) {
+			log.info("[{}] job remain retry times:[{}/{}]", triggerName, i, retryTimes);
+			try {
+				trigger.getJob().accept(trigger);
+			} catch (Throwable e) {
+				// 防止 afterExceptionCaught 方法处理再次出现异常
+				try {
+					trigger.exceptionCaught(e);
+				} catch (Throwable e1) {
+					log.error("retry trigger job exception caught error", e1);
+				}
+			}
+		}
+		
+		// 移除
+		retryCountMap.remove(triggerId);
 	}
 	
+	/**
+	 * 任务执行后
+	 */
 	private void afterJobRun() {
 		nextTriggerEffect(TriggerProperties::isSequence);
 	}

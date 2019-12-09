@@ -139,7 +139,8 @@ public class SimpleTrigger extends AbstractTrigger<SimpleTrigger> {
 		executeTime(now.plus(interval, intervalUnit));
 		// 更新有序 ID
 		id(Sequence.SEQUENCE.nextId());
-		
+		// 更新当前任务ID对应的错误重试次数
+		initRetryTimes();
 		return Optional.of(this);
 	}
 	

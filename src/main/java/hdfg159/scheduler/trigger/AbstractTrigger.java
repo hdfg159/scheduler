@@ -7,7 +7,9 @@ import org.slf4j.LoggerFactory;
 
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
+import java.util.Map;
 import java.util.StringJoiner;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Delayed;
 import java.util.concurrent.TimeUnit;
 import java.util.function.BiConsumer;
@@ -26,6 +28,8 @@ public abstract class AbstractTrigger<T extends AbstractTrigger<T>> implements T
 	
 	private long id = Sequence.SEQUENCE.nextId();
 	private Consumer<Trigger> job;
+	private long retry = 0L;
+	private Map<Long, Long> retryCount = new ConcurrentHashMap<>();
 	private String name;
 	private boolean cancel = false;
 	private long costTime;
@@ -77,8 +81,10 @@ public abstract class AbstractTrigger<T extends AbstractTrigger<T>> implements T
 	}
 	
 	@Override
-	public long getId() {
-		return id;
+	public long getDelay(TimeUnit unit) {
+		LocalDateTime now = LocalDateTime.now();
+		long duration = now.until(getExecuteTime(), ChronoUnit.MILLIS);
+		return unit.convert(duration, TimeUnit.MILLISECONDS);
 	}
 	
 	@Override
@@ -137,10 +143,31 @@ public abstract class AbstractTrigger<T extends AbstractTrigger<T>> implements T
 	}
 	
 	@Override
-	public long getDelay(TimeUnit unit) {
-		LocalDateTime now = LocalDateTime.now();
-		long duration = now.until(getExecuteTime(), ChronoUnit.MILLIS);
-		return unit.convert(duration, TimeUnit.MILLISECONDS);
+	public T retry(long times) {
+		retry = times;
+		initRetryTimes();
+		return self();
+	}
+	
+	@Override
+	public Map<Long, Long> getRetryCountMap() {
+		return retryCount;
+	}
+	
+	@Override
+	public T retryCountMap(Map<Long, Long> retryCountMap) {
+		// 不支持设置
+		return self();
+	}
+	
+	@Override
+	public long getId() {
+		return id;
+	}
+	
+	@Override
+	public long getRetry() {
+		return retry;
 	}
 	
 	@Override
@@ -191,6 +218,8 @@ public abstract class AbstractTrigger<T extends AbstractTrigger<T>> implements T
 		return new StringJoiner(", ", AbstractTrigger.class.getSimpleName() + "[", "]")
 				.add("id=" + id)
 				.add("job=" + job)
+				.add("retry=" + retry)
+				.add("retryCount=" + retryCount)
 				.add("name='" + name + "'")
 				.add("cancel=" + cancel)
 				.add("costTime=" + costTime)

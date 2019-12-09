@@ -1,6 +1,8 @@
 package hdfg159.scheduler.trigger;
 
 import java.time.LocalDateTime;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * 触发器 属性
@@ -9,13 +11,6 @@ import java.time.LocalDateTime;
  * @date 2019/12/5 12:21
  */
 public interface TriggerProperties {
-	/**
-	 * 获取任务 ID
-	 *
-	 * @return long
-	 */
-	long getId();
-	
 	/**
 	 * 设置任务 ID
 	 *
@@ -103,4 +98,57 @@ public interface TriggerProperties {
 	 * @return TriggerProperties
 	 */
 	TriggerProperties sequence(boolean sequence);
+	
+	/**
+	 * 设置任务错误 重试次数
+	 *
+	 * @param times
+	 * 		重试次数
+	 *
+	 * @return TriggerProperties
+	 */
+	TriggerProperties retry(long times);
+	
+	/**
+	 * 初始化重试次数
+	 */
+	default void initRetryTimes() {
+		Map<Long, Long> retryCountMap = getRetryCountMap();
+		if (retryCountMap == null) {
+			retryCountMap(new ConcurrentHashMap<>());
+		}
+		
+		getRetryCountMap().put(getId(), getRetry());
+	}
+	
+	/**
+	 * 获取重试剩余次数
+	 *
+	 * @return {@code Map<Long, Long>} [任务ID:重试剩余次数]
+	 */
+	Map<Long, Long> getRetryCountMap();
+	
+	/**
+	 * 设置重试剩余次数
+	 *
+	 * @param retryCountMap
+	 * 		设置重试次数map
+	 *
+	 * @return {@code TriggerProperties} [任务ID:重试剩余次数]
+	 */
+	TriggerProperties retryCountMap(Map<Long, Long> retryCountMap);
+	
+	/**
+	 * 获取任务 ID
+	 *
+	 * @return long
+	 */
+	long getId();
+	
+	/**
+	 * 获取任务错误 重试次数
+	 *
+	 * @return long
+	 */
+	long getRetry();
 }
