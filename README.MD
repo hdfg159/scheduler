@@ -29,10 +29,12 @@
 > 创建从现在开始，1秒触发1次，一共执行10次的任务
 
 ```
-Triggers.times("自定义触发器名称", 10, 1, ChronoUnit.SECONDS, LocalDateTime.now(), trigger -> {
-        // 业务处理
-        System.out.println("hello world");
-}).schedule();
+Triggers.times("自定义触发器名称", 10, 1, ChronoUnit.SECONDS, LocalDateTime.now(), 
+        trigger -> {
+            // 业务处理
+            System.out.println("hello world");
+        })
+        .schedule();
 ```
 
 更多创建方式可以查看 `hdfg159.scheduler.factory.Triggers` 工厂方法
