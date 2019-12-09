@@ -57,12 +57,35 @@ SchedulerManager.INSTANCE.cancel("自定义触发器名称");
 ```
 Triggers.times("自定义触发器名称", 10, 1, ChronoUnit.SECONDS, LocalDateTime.now(),
         trigger -> {
-            // 业务处理
+            // 耗时业务处理
             System.out.println("hello world");
         })
         .afterExceptionCaught((trigger, throwable) -> {
             // 异常处理
         })
+        .schedule();
+```
+
+## 同一任务顺序执行
+> 默认创建任务`sequence`属性为`false`(即任务开始时马上放入下一个执行时间任务)
+```
+Triggers.times("自定义触发器名称", 5, 1, ChronoUnit.SECONDS, LocalDateTime.now(),
+        trigger -> {
+            // 业务处理
+            System.out.println("hello world");
+        })
+        .sequence(true)
+        .schedule();
+```
+
+## 任务出错重试
+
+```
+Triggers.times("自定义触发器名称", times, 1, ChronoUnit.SECONDS, LocalDateTime.now(),
+        trigger -> {
+            throw new RuntimeException("出错了啊");
+        })
+        .retry(3)
         .schedule();
 ```
 
