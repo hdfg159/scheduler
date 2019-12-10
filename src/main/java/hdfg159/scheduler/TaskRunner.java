@@ -110,7 +110,9 @@ public class TaskRunner implements Runnable {
 				} catch (Throwable e1) {
 					log.error("retry trigger job exception caught error", e1);
 				}
+				continue;
 			}
+			break;
 		}
 		
 		// 移除
