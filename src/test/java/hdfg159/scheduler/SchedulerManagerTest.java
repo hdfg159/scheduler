@@ -90,19 +90,19 @@ public class SchedulerManagerTest {
 	public void retry() throws InterruptedException {
 		final LongAdder adder = new LongAdder();
 		int times = 1;
-		int retryTimes = 5;
+		int retryTimes = 50;
 		Triggers.times("retry", times, 1, ChronoUnit.SECONDS, LocalDateTime.now(),
 				trigger -> {
 					adder.increment();
-					int i = ThreadLocalRandom.current().nextInt(0, 2);
+					int i = ThreadLocalRandom.current().nextInt(0, 10);
 					log.debug("retry-random:[{}]", i);
-					if (i == 0 || adder.longValue() == 1L) {
+					if (i > 0 || adder.longValue() == 1L) {
 						throw new RuntimeException("出错了啊");
 					}
 				})
-				.afterExceptionCaught((trigger, throwable) -> {
-					throw new RuntimeException("捕获异常继续抛出错误");
-				})
+				// .afterExceptionCaught((trigger, throwable) -> {
+				// 	throw new RuntimeException("捕获异常继续抛出错误");
+				// })
 				.retry(retryTimes)
 				// .sequence(true)
 				.schedule();

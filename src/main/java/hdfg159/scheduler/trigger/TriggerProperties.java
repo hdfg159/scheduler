@@ -100,7 +100,8 @@ public interface TriggerProperties {
 	TriggerProperties sequence(boolean sequence);
 	
 	/**
-	 * 设置任务错误 重试次数
+	 * 设置任务错误 重试次数<br>
+	 * -1为重试直到成功<br>
 	 *
 	 * @param times
 	 * 		重试次数

@@ -99,7 +99,8 @@ public class TaskRunner implements Runnable {
 		String triggerName = trigger.getName();
 		
 		// 重复尝试
-		for (long i = retryTimes; i > 0; i--) {
+		long i = retryTimes;
+		while (i > 0 || i == -1) {
 			log.info("[{}] job remain retry times:[{}/{}]", triggerName, i, retryTimes);
 			try {
 				trigger.getJob().accept(trigger);
@@ -109,6 +110,10 @@ public class TaskRunner implements Runnable {
 					trigger.exceptionCaught(e);
 				} catch (Throwable e1) {
 					log.error("retry trigger job exception caught error", e1);
+				}
+				
+				if (i != -1) {
+					--i;
 				}
 				continue;
 			}
