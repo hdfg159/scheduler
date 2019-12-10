@@ -2,7 +2,6 @@ package hdfg159.scheduler;
 
 import hdfg159.scheduler.factory.Triggers;
 import hdfg159.scheduler.trigger.impl.SimpleTrigger;
-import org.junit.Assert;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -90,14 +89,16 @@ public class SchedulerManagerTest {
 	@Test
 	public void retry() throws InterruptedException {
 		final LongAdder adder = new LongAdder();
-		int times = 3;
-		
-		int retryTimes = 3;
+		int times = 1;
+		int retryTimes = 5;
 		Triggers.times("retry", times, 1, ChronoUnit.SECONDS, LocalDateTime.now(),
 				trigger -> {
-					log.debug("retry");
 					adder.increment();
-					throw new RuntimeException("出错了啊");
+					int i = ThreadLocalRandom.current().nextInt(0, 2);
+					log.debug("retry-random:[{}]", i);
+					if (i == 0 || adder.longValue() == 1L) {
+						throw new RuntimeException("出错了啊");
+					}
 				})
 				.afterExceptionCaught((trigger, throwable) -> {
 					throw new RuntimeException("捕获异常继续抛出错误");
@@ -109,6 +110,5 @@ public class SchedulerManagerTest {
 		Thread.sleep(10_000);
 		
 		log.debug("execute time:[{}]", adder.sum());
-		Assert.assertEquals(adder.sum(), (times + 1) * retryTimes);
 	}
 }
