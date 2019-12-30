@@ -1,14 +1,21 @@
 package hdfg159.scheduler;
 
+import hdfg159.scheduler.thread.NormalThreadPoolExecutor;
+import hdfg159.scheduler.thread.SlowThreadPoolExecutor;
+import hdfg159.scheduler.thread.ThreadPool;
 import hdfg159.scheduler.trigger.Trigger;
-import hdfg159.scheduler.util.ThreadFactoryBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.Map;
 import java.util.Optional;
-import java.util.concurrent.*;
+import java.util.Properties;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.DelayQueue;
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 /**
  * 定时调度 组件
@@ -25,17 +32,21 @@ public enum SchedulerManager {
 	/**
 	 * 慢任务执行时间 阈值(毫秒)
 	 */
-	public static final long MAX_LIMIT_TIME = 100L;
+	private static final long MAX_LIMIT_TIME = 100L;
+	private static final String SCHEDULER_PROPERTIES = "scheduler.properties";
+	private static final String CLASS_NORMAL_THREAD_POOL_EXECUTOR = "scheduler.threadPool.class";
+	private static final String CLASS_SLOW_THREAD_POOL_EXECUTOR = "scheduler.slowThreadPool.class";
+	private static final String PROPERTIES_SLOW_MAX_LIMIT_TIME = "scheduler.maxLimitTime";
+	
+	/**
+	 * 取队列任务线程名称
+	 */
+	private static final String THREAD_NAME_SCHEDULER_TAKE_TASK = "scheduler-take-task";
+	private static final Logger log = LoggerFactory.getLogger(SchedulerManager.class);
 	/**
 	 * 是否运行定时任务调度
 	 */
 	private static boolean isWork = true;
-	
-	private final Logger log = LoggerFactory.getLogger(SchedulerManager.class);
-	/**
-	 * 取队列任务线程名称
-	 */
-	private final String THREAD_NAME_SCHEDULER_TAKE_TASK = "scheduler-take-task";
 	/**
 	 * 延迟任务队列
 	 */
@@ -45,18 +56,21 @@ public enum SchedulerManager {
 	 */
 	private final Map<String, Trigger> waitingJob = new ConcurrentHashMap<>();
 	/**
-	 * 任务运行线程池
+	 * 正常线程线程池实现
 	 */
-	private final ExecutorService taskService;
+	private final ThreadPool taskExecutor;
 	/**
-	 * 慢任务运行线程池
+	 * 慢任务线程池实现
 	 */
-	private final ExecutorService slowTaskService;
+	private final ThreadPool slowTaskExecutor;
 	/**
 	 * 取任务线程
 	 */
 	private final Thread takeTaskThread;
-	
+	/**
+	 * 配置文件
+	 */
+	private Properties config;
 	/**
 	 * 中断取任务线程监听
 	 */
@@ -66,8 +80,20 @@ public enum SchedulerManager {
 	 * 默认构造器
 	 */
 	SchedulerManager() {
-		taskService = taskThreadPoolExecutor();
-		slowTaskService = slowTaskThreadPoolExecutor();
+		config = initProperties();
+		String normalThreadPoolClassName = config.getProperty(CLASS_NORMAL_THREAD_POOL_EXECUTOR);
+		taskExecutor = initTaskExecutor(normalThreadPoolClassName, () -> {
+			NormalThreadPoolExecutor executor = new NormalThreadPoolExecutor();
+			executor.initialize();
+			return executor;
+		});
+		
+		String slowThreadPoolClassName = config.getProperty(CLASS_SLOW_THREAD_POOL_EXECUTOR);
+		slowTaskExecutor = initTaskExecutor(slowThreadPoolClassName, () -> {
+			SlowThreadPoolExecutor executor = new SlowThreadPoolExecutor();
+			executor.initialize();
+			return executor;
+		});
 		
 		takeTaskThread = new Thread(new TakeQueueTask());
 		takeTaskThread.setName(THREAD_NAME_SCHEDULER_TAKE_TASK);
@@ -77,77 +103,40 @@ public enum SchedulerManager {
 	}
 	
 	/**
-	 * 获取任务执行线程池
+	 * 初始化读取配置文件
 	 *
-	 * @return ThreadPoolExecutor
+	 * @return Properties
 	 */
-	private ThreadPoolExecutor taskThreadPoolExecutor() {
-		// 线程池线程命名
-		final String poolNameFormat = "task-executor-%d";
-		// 线程池队列拒绝策略
-		final RejectedExecutionHandler rejectedExecutionHandler = new ThreadPoolExecutor.CallerRunsPolicy();
-		// 核心线程数，队列未满，默认最多创建线程数量
-		final int corePoolSize = Runtime.getRuntime().availableProcessors() + 1;
-		// 最大线程数，队列满了，允许新增到最大线程数量
-		final int maximumPoolSize = Runtime.getRuntime().availableProcessors() + 1;
-		// 线程存活时间，当线程池数量超过核心线程数量以后，空闲时间(idle) 时间超过这个值的线程会被终止
-		final int keepAliveTime = 120;
-		// 线程池存活时间单位
-		final TimeUnit timeUnit = TimeUnit.SECONDS;
-		// 默认线程池最大队列是 INT 最大值（过大导致内存满），队列长度
-		final int queueCapacity = Integer.MAX_VALUE;
-		// 队列类型
-		final LinkedBlockingQueue<Runnable> workQueue = new LinkedBlockingQueue<>(queueCapacity);
-		// 自定义线程工厂：自定义名字/优先级/线程是否 Daemon （Daemon 是守护进程, JVM 执行完用户线程后退出，Daemon 线程也会退出，非 Daemon 线程的话会当作用户线程一直执行）
-		final ThreadFactory threadFactory = new ThreadFactoryBuilder()
-				.setNameFormat(poolNameFormat)
-				.setDaemon(false)
-				// 默认异常处理
-				.setUncaughtExceptionHandler((t, e) -> log.error("thread run error:[{}]", t.getName(), e))
-				.build();
+	private Properties initProperties() {
+		Properties properties = new Properties();
 		
-		return new ThreadPoolExecutor(corePoolSize, maximumPoolSize, keepAliveTime, timeUnit, workQueue, threadFactory, rejectedExecutionHandler) {
-			@Override
-			public void shutdown() {
-				int queueSize = getQueue().size();
-				int threadActiveCount = getActiveCount();
-				log.info("shutdown task thread pool,working thread count:[{}],queue size:[{}],wait for exist tasks count:[{}]", threadActiveCount, queueSize, queueSize + threadActiveCount);
-				super.shutdown();
-				log.info("shutdown task thread pool finish");
+		try (InputStream inputStream = Thread.currentThread().getContextClassLoader().getResourceAsStream(SCHEDULER_PROPERTIES)) {
+			if (inputStream != null) {
+				properties.load(inputStream);
 			}
-		};
+		} catch (IOException e) {
+			log.error("load properties error", e);
+		}
+		return properties;
 	}
 	
-	/**
-	 * 慢任务执行线程池
-	 *
-	 * @return ExecutorService
-	 */
-	private ExecutorService slowTaskThreadPoolExecutor() {
-		final String poolNameFormat = "slow-task-executor-%d";
-		final RejectedExecutionHandler rejectedExecutionHandler = new ThreadPoolExecutor.CallerRunsPolicy();
-		final int corePoolSize = Runtime.getRuntime().availableProcessors() * 10;
-		final int maximumPoolSize = Runtime.getRuntime().availableProcessors() * 10;
-		final int keepAliveTime = 60;
-		final TimeUnit timeUnit = TimeUnit.SECONDS;
-		final int queueCapacity = Integer.MAX_VALUE;
-		final LinkedBlockingQueue<Runnable> workQueue = new LinkedBlockingQueue<>(queueCapacity);
-		final ThreadFactory threadFactory = new ThreadFactoryBuilder()
-				.setNameFormat(poolNameFormat)
-				.setDaemon(false)
-				.setUncaughtExceptionHandler((t, e) -> log.error("thread run error:[{}]", t.getName(), e))
-				.build();
-		
-		return new ThreadPoolExecutor(corePoolSize, maximumPoolSize, keepAliveTime, timeUnit, workQueue, threadFactory, rejectedExecutionHandler) {
-			@Override
-			public void shutdown() {
-				int queueSize = getQueue().size();
-				int threadActiveCount = getActiveCount();
-				log.info("shutdown slow task thread pool,working thread count:[{}],queue size:[{}],wait for exist tasks count:[{}]", threadActiveCount, queueSize, queueSize + threadActiveCount);
-				super.shutdown();
-				log.info("shutdown slow task thread pool finish");
-			}
-		};
+	private ThreadPool initTaskExecutor(String clazzName, Supplier<ThreadPool> threadPoolSupplier) {
+		return Optional.ofNullable(clazzName)
+				.map(className -> {
+					try {
+						Class<?> clazz = Class.forName(className);
+						Object instance = clazz.getDeclaredConstructor().newInstance();
+						if (instance instanceof ThreadPool) {
+							ThreadPool threadPool = (ThreadPool) instance;
+							threadPool.initialize();
+							return threadPool;
+						}
+					} catch (Exception e) {
+						log.error("init thread pool error,exception:[{}]", e.getClass().getName(), e);
+					}
+					return null;
+				})
+				.orElseGet(threadPoolSupplier);
 	}
 	
 	public Consumer<DelayQueue<Trigger>> getTakeQueueInterruptListener() {
@@ -210,8 +199,8 @@ public enum SchedulerManager {
 	public void shutdown() {
 		takeTaskThread.interrupt();
 		
-		taskService.shutdown();
-		slowTaskService.shutdown();
+		taskExecutor.shutdown();
+		slowTaskExecutor.shutdown();
 	}
 	
 	/**
@@ -285,6 +274,17 @@ public enum SchedulerManager {
 	}
 	
 	/**
+	 * 获取慢任务执行时间阈值
+	 *
+	 * @return long 毫秒
+	 */
+	private long getLimitTime() {
+		return Optional.ofNullable(config.getProperty(PROPERTIES_SLOW_MAX_LIMIT_TIME))
+				.map(Long::parseLong)
+				.orElse(MAX_LIMIT_TIME);
+	}
+	
+	/**
 	 * 取延迟队列任务
 	 */
 	private class TakeQueueTask implements Runnable {
@@ -298,10 +298,11 @@ public enum SchedulerManager {
 					waitingJob.remove(triggerName);
 					
 					TaskRunner taskRunner = new TaskRunner(trigger);
-					if (trigger.getCostTime() > MAX_LIMIT_TIME) {
-						slowTaskService.execute(taskRunner);
+					long limitTime = getLimitTime();
+					if (trigger.getCostTime() > limitTime) {
+						slowTaskExecutor.threadPool().execute(taskRunner);
 					} else {
-						taskService.execute(taskRunner);
+						taskExecutor.threadPool().execute(taskRunner);
 					}
 				} catch (InterruptedException e) {
 					log.error("take queue task thread interrupted,task termination,queue size:[{}]", taskQueue.size());

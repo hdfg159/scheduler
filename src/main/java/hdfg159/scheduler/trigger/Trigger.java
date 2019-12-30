@@ -17,7 +17,7 @@ public interface Trigger extends Serializable, Delayed, TriggerProperties {
 	/**
 	 * 获取任务
 	 *
-	 * @return Consumer<Trigger>
+	 * @return {@code Consumer<Trigger>}
 	 */
 	Consumer<Trigger> getJob();
 	

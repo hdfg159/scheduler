@@ -8,7 +8,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * 触发器 属性
  *
  * @author hdfg159
- * @date 2019/12/5 12:21
+ * @version 1.0
  */
 public interface TriggerProperties {
 	/**
