@@ -1,9 +1,9 @@
-package hdfg159.scheduler;
+package io.github.hdfg159.scheduler;
 
-import hdfg159.scheduler.thread.NormalThreadPoolExecutor;
-import hdfg159.scheduler.thread.SlowThreadPoolExecutor;
-import hdfg159.scheduler.thread.ThreadPool;
-import hdfg159.scheduler.trigger.Trigger;
+import io.github.hdfg159.scheduler.thread.NormalThreadPoolExecutor;
+import io.github.hdfg159.scheduler.thread.SlowThreadPoolExecutor;
+import io.github.hdfg159.scheduler.thread.ThreadPool;
+import io.github.hdfg159.scheduler.trigger.Trigger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

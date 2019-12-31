@@ -1,6 +1,6 @@
-package hdfg159.scheduler.thread;
+package io.github.hdfg159.scheduler.thread;
 
-import hdfg159.scheduler.util.ThreadFactoryBuilder;
+import io.github.hdfg159.scheduler.util.ThreadFactoryBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

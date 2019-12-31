@@ -1,8 +1,8 @@
-package hdfg159.scheduler.factory;
+package io.github.hdfg159.scheduler.factory;
 
-import hdfg159.scheduler.trigger.Trigger;
-import hdfg159.scheduler.trigger.impl.DayTrigger;
-import hdfg159.scheduler.trigger.impl.SimpleTrigger;
+import io.github.hdfg159.scheduler.trigger.Trigger;
+import io.github.hdfg159.scheduler.trigger.impl.DayTrigger;
+import io.github.hdfg159.scheduler.trigger.impl.SimpleTrigger;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;

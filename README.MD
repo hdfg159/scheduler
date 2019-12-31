@@ -37,7 +37,7 @@ Triggers.times("自定义触发器名称", 10, 1, ChronoUnit.SECONDS, LocalDateT
         .schedule();
 ```
 
-更多创建方式可以查看 `hdfg159.scheduler.factory.Triggers` 工厂方法
+更多创建方式可以查看 `Triggers` 工厂方法
 
 ## 取消任务
 

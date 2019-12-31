@@ -1,4 +1,4 @@
-package hdfg159.scheduler.util;
+package io.github.hdfg159.scheduler.util;
 
 import java.lang.management.ManagementFactory;
 import java.net.InetAddress;

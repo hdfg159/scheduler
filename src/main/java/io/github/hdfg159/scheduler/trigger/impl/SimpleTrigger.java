@@ -1,8 +1,8 @@
-package hdfg159.scheduler.trigger.impl;
+package io.github.hdfg159.scheduler.trigger.impl;
 
-import hdfg159.scheduler.trigger.AbstractTrigger;
-import hdfg159.scheduler.trigger.Trigger;
-import hdfg159.scheduler.util.Sequence;
+import io.github.hdfg159.scheduler.trigger.AbstractTrigger;
+import io.github.hdfg159.scheduler.trigger.Trigger;
+import io.github.hdfg159.scheduler.util.Sequence;
 
 import java.time.LocalDateTime;
 import java.time.temporal.TemporalUnit;

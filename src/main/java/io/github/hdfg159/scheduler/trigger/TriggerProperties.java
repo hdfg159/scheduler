@@ -1,4 +1,4 @@
-package hdfg159.scheduler.trigger;
+package io.github.hdfg159.scheduler.trigger;
 
 import java.time.LocalDateTime;
 import java.util.Map;

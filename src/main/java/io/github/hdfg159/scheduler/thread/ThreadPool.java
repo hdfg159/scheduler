@@ -1,4 +1,4 @@
-package hdfg159.scheduler.thread;
+package io.github.hdfg159.scheduler.thread;
 
 import java.util.concurrent.ExecutorService;
 

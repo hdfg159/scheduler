@@ -1,7 +1,7 @@
-package hdfg159.scheduler;
+package io.github.hdfg159.scheduler;
 
-import hdfg159.scheduler.trigger.Trigger;
-import hdfg159.scheduler.trigger.TriggerProperties;
+import io.github.hdfg159.scheduler.trigger.Trigger;
+import io.github.hdfg159.scheduler.trigger.TriggerProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
