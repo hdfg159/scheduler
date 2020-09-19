@@ -1,11 +1,12 @@
 package io.github.hdfg159.scheduler.trigger;
 
+import io.github.hdfg159.scheduler.function.Consumer;
+
 import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.concurrent.Delayed;
 import java.util.function.BiConsumer;
-import java.util.function.Consumer;
 
 /**
  * 任务触发器接口
@@ -20,7 +21,7 @@ public interface Trigger extends Serializable, Delayed, TriggerProperties {
 	 * @return {@code Consumer<Trigger>}
 	 */
 	Consumer<Trigger> getJob();
-	
+
 	/**
 	 * 设置任务
 	 *
@@ -30,14 +31,14 @@ public interface Trigger extends Serializable, Delayed, TriggerProperties {
 	 * @return Trigger
 	 */
 	Trigger job(Consumer<Trigger> job);
-	
+
 	/**
 	 * 获取执行时间
 	 *
 	 * @return LocalDateTime
 	 */
 	LocalDateTime getExecuteTime();
-	
+
 	/**
 	 * 设置执行时间
 	 *
@@ -47,21 +48,21 @@ public interface Trigger extends Serializable, Delayed, TriggerProperties {
 	 * @return Trigger
 	 */
 	Trigger executeTime(LocalDateTime executeTime);
-	
+
 	/**
 	 * 自定义在原来基础上生成一个新的触发器
 	 *
 	 * @return {@code Optional<T>}
 	 */
 	Optional<Trigger> nextTrigger();
-	
+
 	/**
 	 * 调度
 	 *
 	 * @return boolean true:放入调度队列成功,false:放入调度队列失败
 	 */
 	boolean schedule();
-	
+
 	/**
 	 * 取消任务
 	 * 与{@link Trigger#cancel(boolean)}不同，可以在取消后马上加入新的同名定时器
@@ -69,7 +70,7 @@ public interface Trigger extends Serializable, Delayed, TriggerProperties {
 	 * @return boolean true:取消成功,false:取消失败
 	 */
 	boolean scheduleCancel();
-	
+
 	/**
 	 * 抛出异常后 默认处理方法
 	 *
@@ -87,17 +88,17 @@ public interface Trigger extends Serializable, Delayed, TriggerProperties {
 			}
 			throw new RuntimeException(cause);
 		}
-		
+
 		consumer.accept(this, cause);
 	}
-	
+
 	/**
 	 * 获取 Trigger job执行 抛出异常后操作 消费
 	 *
 	 * @return {@code BiConsumer<Trigger, Throwable>}
 	 */
 	BiConsumer<Trigger, Throwable> getAfterExceptionCaught();
-	
+
 	/**
 	 * Trigger job执行 抛出异常后操作 消费
 	 *

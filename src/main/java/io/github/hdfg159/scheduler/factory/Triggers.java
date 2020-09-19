@@ -1,5 +1,6 @@
 package io.github.hdfg159.scheduler.factory;
 
+import io.github.hdfg159.scheduler.function.Consumer;
 import io.github.hdfg159.scheduler.trigger.Trigger;
 import io.github.hdfg159.scheduler.trigger.impl.DayTrigger;
 import io.github.hdfg159.scheduler.trigger.impl.SimpleTrigger;
@@ -9,7 +10,6 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.temporal.ChronoUnit;
 import java.time.temporal.TemporalUnit;
-import java.util.function.Consumer;
 
 /**
  * 调度构造工具
@@ -39,7 +39,7 @@ public abstract class Triggers {
 	public static SimpleTrigger times(String name, long times, long interval, TemporalUnit intervalUnit, LocalDateTime startTime, Consumer<Trigger> job) {
 		return new SimpleTrigger(name, times, interval, intervalUnit, startTime, null, job);
 	}
-	
+
 	/**
 	 * 创建在生效时间和结束时间之间固定间隔时间生效 任务触发器
 	 *
@@ -61,7 +61,7 @@ public abstract class Triggers {
 	public static SimpleTrigger foreverWithEndTime(String name, long interval, TemporalUnit intervalUnit, LocalDateTime startTime, LocalDateTime endTime, Consumer<Trigger> job) {
 		return new SimpleTrigger(name, 0, interval, intervalUnit, startTime, endTime, job);
 	}
-	
+
 	/**
 	 * 创建没有结束时间而且固定间隔时间生效 任务触发器
 	 *
@@ -81,7 +81,7 @@ public abstract class Triggers {
 	public static SimpleTrigger forever(String name, long interval, TemporalUnit intervalUnit, LocalDateTime startTime, Consumer<Trigger> job) {
 		return new SimpleTrigger(name, 0, interval, intervalUnit, startTime, null, job);
 	}
-	
+
 	/**
 	 * 创建每日固定时间 任务触发器
 	 *
@@ -100,7 +100,7 @@ public abstract class Triggers {
 		LocalDateTime startTime = todayTime.isBefore(LocalDateTime.now()) ? LocalDateTime.of(tomorrow, time) : todayTime;
 		return new SimpleTrigger(name, 0, 1, ChronoUnit.DAYS, startTime, null, job);
 	}
-	
+
 	/**
 	 * 创建执行一次 任务触发器
 	 *
@@ -116,7 +116,7 @@ public abstract class Triggers {
 	public static SimpleTrigger once(String name, LocalDateTime startTime, Consumer<Trigger> job) {
 		return new SimpleTrigger(name, 1, 0, ChronoUnit.MILLIS, startTime, null, job);
 	}
-	
+
 	/**
 	 * 创建周几时间点 任务触发器
 	 *

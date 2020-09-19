@@ -1,5 +1,6 @@
 package io.github.hdfg159.scheduler.trigger.impl;
 
+import io.github.hdfg159.scheduler.function.Consumer;
 import io.github.hdfg159.scheduler.trigger.AbstractTrigger;
 import io.github.hdfg159.scheduler.trigger.Trigger;
 import io.github.hdfg159.scheduler.util.Sequence;
@@ -12,7 +13,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.StringJoiner;
-import java.util.function.Consumer;
 
 import static java.util.stream.Collectors.toList;
 
@@ -26,7 +26,7 @@ public class DayTrigger extends AbstractTrigger<DayTrigger> {
 	private static final long serialVersionUID = 6539676699114311448L;
 	private List<DayOfWeek> days;
 	private LocalTime time;
-	
+
 	/**
 	 * 创建日调度触发器
 	 *
@@ -44,25 +44,25 @@ public class DayTrigger extends AbstractTrigger<DayTrigger> {
 			throw new IllegalArgumentException("trigger must have a name");
 		}
 		name(name);
-		
+
 		if (time == null) {
 			throw new IllegalArgumentException("trigger time required not null");
 		}
 		this.time = time;
-		
+
 		if (job == null) {
 			throw new IllegalArgumentException("trigger job required not null");
 		}
 		job(job);
-		
+
 		if (days == null || days.length == 0) {
 			throw new IllegalArgumentException("trigger day required not null or length > 0");
 		}
 		this.days = Arrays.stream(days).sorted().mapToObj(DayOfWeek::of).collect(toList());
-		
+
 		executeTime(getNextExecuteTime());
 	}
-	
+
 	/**
 	 * 获取下次执行时间
 	 *
@@ -80,21 +80,21 @@ public class DayTrigger extends AbstractTrigger<DayTrigger> {
 					return LocalDateTime.of(date, time);
 				});
 	}
-	
+
 	public List<DayOfWeek> getDays() {
 		return days;
 	}
-	
+
 	public LocalTime getTime() {
 		return time;
 	}
-	
+
 	@Override
 	public Optional<Trigger> nextTrigger() {
 		if (isCancel()) {
 			return Optional.empty();
 		}
-		
+
 		// 设置上次执行时间
 		setPreviousTime(LocalDateTime.now());
 		// 设置下次执行时间
@@ -105,7 +105,7 @@ public class DayTrigger extends AbstractTrigger<DayTrigger> {
 		initRetryTimes();
 		return Optional.of(this);
 	}
-	
+
 	@Override
 	public String toString() {
 		return new StringJoiner(", ", DayTrigger.class.getSimpleName() + "[", "]")

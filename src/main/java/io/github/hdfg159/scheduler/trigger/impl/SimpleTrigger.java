@@ -1,5 +1,6 @@
 package io.github.hdfg159.scheduler.trigger.impl;
 
+import io.github.hdfg159.scheduler.function.Consumer;
 import io.github.hdfg159.scheduler.trigger.AbstractTrigger;
 import io.github.hdfg159.scheduler.trigger.Trigger;
 import io.github.hdfg159.scheduler.util.Sequence;
@@ -8,7 +9,6 @@ import java.time.LocalDateTime;
 import java.time.temporal.TemporalUnit;
 import java.util.Optional;
 import java.util.StringJoiner;
-import java.util.function.Consumer;
 
 /**
  * 简单任务调度定时器
@@ -18,9 +18,9 @@ import java.util.function.Consumer;
  */
 public class SimpleTrigger extends AbstractTrigger<SimpleTrigger> {
 	private static final long EXECUTE_TIME_FOREVER = -1L;
-	
+
 	private static final long serialVersionUID = -5139037867976863476L;
-	
+
 	/**
 	 * 当前剩余执行次数
 	 */
@@ -41,7 +41,7 @@ public class SimpleTrigger extends AbstractTrigger<SimpleTrigger> {
 	 * 定时器结束生效时间
 	 */
 	private LocalDateTime endTime;
-	
+
 	/**
 	 * 创建简单定时器
 	 *
@@ -65,13 +65,13 @@ public class SimpleTrigger extends AbstractTrigger<SimpleTrigger> {
 			throw new IllegalArgumentException("trigger must have a name");
 		}
 		name(name);
-		
+
 		long executeTimes = times - 1;
 		if (executeTimes < EXECUTE_TIME_FOREVER) {
 			throw new IllegalArgumentException("trigger times must be >= 0");
 		}
 		this.executeTimes = executeTimes;
-		
+
 		if (interval < 0) {
 			throw new IllegalArgumentException("trigger interval must be >= 0");
 		}
@@ -80,41 +80,41 @@ public class SimpleTrigger extends AbstractTrigger<SimpleTrigger> {
 			throw new IllegalArgumentException("trigger interval unit required not null");
 		}
 		this.intervalUnit = intervalUnit;
-		
+
 		if (startTime == null) {
 			throw new IllegalArgumentException("trigger start time required not null");
 		}
 		this.startTime = startTime;
 		executeTime(startTime);
-		
+
 		this.endTime = endTime;
-		
+
 		if (job == null) {
 			throw new IllegalArgumentException("trigger job required not null");
 		}
 		job(job);
 	}
-	
+
 	public long getExecuteTimes() {
 		return executeTimes;
 	}
-	
+
 	public long getInterval() {
 		return interval;
 	}
-	
+
 	public TemporalUnit getIntervalUnit() {
 		return intervalUnit;
 	}
-	
+
 	public LocalDateTime getStartTime() {
 		return startTime;
 	}
-	
+
 	public LocalDateTime getEndTime() {
 		return endTime;
 	}
-	
+
 	@Override
 	public Optional<Trigger> nextTrigger() {
 		if (isCancel()) {
@@ -123,12 +123,12 @@ public class SimpleTrigger extends AbstractTrigger<SimpleTrigger> {
 		if (executeTimes == 0) {
 			return Optional.empty();
 		}
-		
+
 		LocalDateTime now = LocalDateTime.now();
 		if (endTime != null && endTime.isBefore(now)) {
 			return Optional.empty();
 		}
-		
+
 		if (executeTimes != EXECUTE_TIME_FOREVER) {
 			// 不是无限次执行,才执行次数-1
 			executeTimes -= 1;
@@ -143,7 +143,7 @@ public class SimpleTrigger extends AbstractTrigger<SimpleTrigger> {
 		initRetryTimes();
 		return Optional.of(this);
 	}
-	
+
 	@Override
 	public String toString() {
 		return new StringJoiner(", ", SimpleTrigger.class.getSimpleName() + "[", "]")
