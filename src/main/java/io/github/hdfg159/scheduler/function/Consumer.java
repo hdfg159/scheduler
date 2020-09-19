@@ -7,6 +7,9 @@ public interface Consumer<T> {
 	 *
 	 * @param t
 	 * 		the input argument
+	 *
+	 * @throws Exception
+	 * 		execute error throw exception
 	 */
 	void accept(T t) throws Exception;
 }
