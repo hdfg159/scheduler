@@ -28,7 +28,7 @@ public enum SchedulerManager {
 	 * 实例
 	 */
 	INSTANCE;
-	
+
 	/**
 	 * 慢任务执行时间 阈值(毫秒)
 	 */
@@ -37,7 +37,7 @@ public enum SchedulerManager {
 	private static final String CLASS_NORMAL_THREAD_POOL_EXECUTOR = "scheduler.threadPool.class";
 	private static final String CLASS_SLOW_THREAD_POOL_EXECUTOR = "scheduler.slowThreadPool.class";
 	private static final String PROPERTIES_SLOW_MAX_LIMIT_TIME = "scheduler.maxLimitTime";
-	
+
 	/**
 	 * 取队列任务线程名称
 	 */
@@ -75,7 +75,7 @@ public enum SchedulerManager {
 	 * 中断取任务线程监听
 	 */
 	private Consumer<DelayQueue<Trigger>> takeQueueInterruptListener;
-	
+
 	/**
 	 * 默认构造器
 	 */
@@ -87,21 +87,21 @@ public enum SchedulerManager {
 			executor.initialize();
 			return executor;
 		});
-		
+
 		String slowThreadPoolClassName = config.getProperty(CLASS_SLOW_THREAD_POOL_EXECUTOR);
 		slowTaskExecutor = initTaskExecutor(slowThreadPoolClassName, () -> {
 			SlowThreadPoolExecutor executor = new SlowThreadPoolExecutor();
 			executor.initialize();
 			return executor;
 		});
-		
+
 		takeTaskThread = new Thread(new TakeQueueTask());
 		takeTaskThread.setName(THREAD_NAME_SCHEDULER_TAKE_TASK);
 		// 设置为非守护进程
 		takeTaskThread.setDaemon(false);
 		takeTaskThread.start();
 	}
-	
+
 	/**
 	 * 初始化读取配置文件
 	 *
@@ -109,7 +109,7 @@ public enum SchedulerManager {
 	 */
 	private Properties initProperties() {
 		Properties properties = new Properties();
-		
+
 		try (InputStream inputStream = Thread.currentThread().getContextClassLoader().getResourceAsStream(SCHEDULER_PROPERTIES)) {
 			if (inputStream != null) {
 				properties.load(inputStream);
@@ -119,7 +119,7 @@ public enum SchedulerManager {
 		}
 		return properties;
 	}
-	
+
 	private ThreadPool initTaskExecutor(String clazzName, Supplier<ThreadPool> threadPoolSupplier) {
 		return Optional.ofNullable(clazzName)
 				.map(className -> {
@@ -138,11 +138,11 @@ public enum SchedulerManager {
 				})
 				.orElseGet(threadPoolSupplier);
 	}
-	
+
 	public Consumer<DelayQueue<Trigger>> getTakeQueueInterruptListener() {
 		return takeQueueInterruptListener;
 	}
-	
+
 	/**
 	 * 设置中断取任务线程监听
 	 *
@@ -155,7 +155,7 @@ public enum SchedulerManager {
 		this.takeQueueInterruptListener = takeQueueInterruptListener;
 		return this;
 	}
-	
+
 	/**
 	 * 是否正在运行
 	 *
@@ -164,7 +164,7 @@ public enum SchedulerManager {
 	public boolean isWork() {
 		return isWork;
 	}
-	
+
 	/**
 	 * 设置执行状态
 	 *
@@ -174,7 +174,7 @@ public enum SchedulerManager {
 	public void setWork(boolean work) {
 		isWork = work;
 	}
-	
+
 	/**
 	 * 获取延迟任务队列
 	 *
@@ -183,7 +183,7 @@ public enum SchedulerManager {
 	public DelayQueue<Trigger> getTaskQueue() {
 		return taskQueue;
 	}
-	
+
 	/**
 	 * 获取等待调度运行的触发器
 	 *
@@ -192,17 +192,17 @@ public enum SchedulerManager {
 	public Map<String, Trigger> getWaitingJob() {
 		return waitingJob;
 	}
-	
+
 	/**
 	 * 关闭任务调度
 	 */
 	public void shutdown() {
 		takeTaskThread.interrupt();
-		
+
 		taskExecutor.shutdown();
 		slowTaskExecutor.shutdown();
 	}
-	
+
 	/**
 	 * 加入调度任务
 	 *
@@ -215,31 +215,32 @@ public enum SchedulerManager {
 		if (!isWork) {
 			return false;
 		}
-		
+
 		if (trigger == null) {
 			throw new IllegalArgumentException("trigger not allow null");
 		}
-		
+
 		String triggerName = trigger.getName();
 		if (triggerName == null) {
 			throw new IllegalArgumentException("trigger must have a name");
 		}
-		
-		Trigger putVal = waitingJob.put(triggerName, trigger);
+
+		Trigger putVal = waitingJob.putIfAbsent(triggerName, trigger);
 		if (putVal != null) {
-			throw new RuntimeException("exist trigger name:[" + triggerName + "]");
+			log.info("exist trigger name:[{}]", triggerName);
+			return false;
 		}
-		
+
 		boolean isAddSuccess = taskQueue.add(trigger);
 		if (!isAddSuccess) {
 			waitingJob.remove(triggerName);
 			return false;
 		}
-		
+
 		log.info("schedule trigger:[{}][{}],execute time:[{}]", triggerName, trigger.getId(), trigger.getExecuteTime());
 		return true;
 	}
-	
+
 	/**
 	 * 取消等待执行的任务调度
 	 *
@@ -253,14 +254,14 @@ public enum SchedulerManager {
 		if (!triggerOptional.isPresent()) {
 			return false;
 		}
-		
+
 		Trigger trigger = triggerOptional.get();
 		trigger.cancel(true);
-		
+
 		waitingJob.remove(triggerName);
 		return true;
 	}
-	
+
 	/**
 	 * 获取等待调度运行的触发器
 	 *
@@ -272,7 +273,7 @@ public enum SchedulerManager {
 	public Optional<Trigger> getWaitingJob(String triggerName) {
 		return Optional.ofNullable(waitingJob.get(triggerName));
 	}
-	
+
 	/**
 	 * 获取慢任务执行时间阈值
 	 *
@@ -283,7 +284,7 @@ public enum SchedulerManager {
 				.map(Long::parseLong)
 				.orElse(MAX_LIMIT_TIME);
 	}
-	
+
 	/**
 	 * 取延迟队列任务
 	 */
@@ -293,10 +294,10 @@ public enum SchedulerManager {
 			while (SchedulerManager.INSTANCE.isWork()) {
 				try {
 					Trigger trigger = taskQueue.take();
-					
+
 					String triggerName = trigger.getName();
 					waitingJob.remove(triggerName);
-					
+
 					TaskRunner taskRunner = new TaskRunner(trigger);
 					long limitTime = getLimitTime();
 					if (trigger.getCostTime() > limitTime) {
@@ -315,7 +316,7 @@ public enum SchedulerManager {
 				}
 			}
 		}
-		
+
 		private void interruptListener() {
 			log.info("execute take queue interrupt listener");
 			try {

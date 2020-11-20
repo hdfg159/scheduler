@@ -2,6 +2,7 @@ package io.github.hdfg159.scheduler;
 
 import io.github.hdfg159.scheduler.factory.Triggers;
 import io.github.hdfg159.scheduler.trigger.impl.SimpleTrigger;
+import org.junit.Assert;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -126,5 +127,18 @@ public class SchedulerManagerTest {
 		Thread.sleep(10_000);
 
 		log.debug("execute time:[{}]", adder.sum());
+	}
+
+	@Test
+	public void repeatTask() throws InterruptedException {
+		boolean result1 = Triggers.once("test", LocalDateTime.now().plusMinutes(3), trigger -> {}).schedule();
+		Assert.assertTrue(result1);
+
+		Thread.sleep(1000);
+
+		SimpleTrigger test = Triggers.once("test", LocalDateTime.now().plusMinutes(3), trigger -> {});
+		log.info(test.toString());
+		boolean result2 = test.schedule();
+		Assert.assertFalse(result2);
 	}
 }
